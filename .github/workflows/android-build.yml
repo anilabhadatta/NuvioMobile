@@ -25,10 +25,29 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Generate Release Keystore
+      run: |
+        keytool -genkey -v -keystore release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias release -dname "CN=Nuvio, OU=App, O=Nuvio, L=City, S=State, C=US" -storepass password -keypass password
+
     - name: Create local.properties
       run: |
         touch local.properties
-        echo "INTRODB_API_URL=https://api.introdb.app" >> local.properties
+        echo "NUVIO_RELEASE_STORE_FILE=${{ github.workspace }}/release.jks" >> local.properties
+        echo "NUVIO_RELEASE_STORE_PASSWORD=password" >> local.properties
+        echo "NUVIO_RELEASE_KEY_ALIAS=release" >> local.properties
+        echo "NUVIO_RELEASE_KEY_PASSWORD=password" >> local.properties
+        echo "INTRODB_API_URL=${{ secrets.INTRODB_API_URL }}" >> local.properties
+        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> local.properties
+        echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> local.properties
+        echo "IMDB_RATINGS_API_BASE_URL=${{ secrets.IMDB_RATINGS_API_BASE_URL }}" >> local.properties
+        echo "IMDB_TAPFRAME_API_BASE_URL=${{ secrets.IMDB_TAPFRAME_API_BASE_URL }}" >> local.properties
+        echo "TRAKT_CLIENT_ID=${{ secrets.TRAKT_CLIENT_ID }}" >> local.properties
+        echo "TRAKT_CLIENT_SECRET=${{ secrets.TRAKT_CLIENT_SECRET }}" >> local.properties
+        echo "TRAKT_REDIRECT_URI=${{ secrets.TRAKT_REDIRECT_URI }}" >> local.properties
+        echo "PREMIUMIZE_CLIENT_ID=${{ secrets.PREMIUMIZE_CLIENT_ID }}" >> local.properties
+        echo "CONTRIBUTIONS_URL=${{ secrets.CONTRIBUTIONS_URL }}" >> local.properties
+        echo "DONATIONS_BASE_URL=${{ secrets.DONATIONS_BASE_URL }}" >> local.properties
+        echo "DONATIONS_DONATE_URL=${{ secrets.DONATIONS_DONATE_URL }}" >> local.properties
 
     - name: Compute build version
       id: version
