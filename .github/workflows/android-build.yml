@@ -56,7 +56,7 @@ jobs:
         echo "name=$version" >> $GITHUB_OUTPUT
 
     - name: Build Android APK
-      run: ./gradlew :androidApp:assembleFullRelease -Pnuvio.android.distribution=full
+      run: ./gradlew :androidApp:assembleFullRelease -Pnuvio.android.distribution=full --no-configuration-cache
 
     - name: Publish to GitHub Releases
       uses: softprops/action-gh-release@v2
