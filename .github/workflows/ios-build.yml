@@ -1,8 +1,8 @@
 name: Build iOS App
 
 on:
-  push:
-    branches: [ "release" ]
+  # push:
+  #   branches: [ "release" ]
   workflow_dispatch:
     inputs:
       build_branch:
@@ -66,17 +66,6 @@ jobs:
       run: |
         version="1.0.${{ github.run_number }}"
         echo "name=$version" >> $GITHUB_OUTPUT
-
-    - name: Raise Gradle heap for Kotlin/Native release link
-      run: |
-        set -euo pipefail
-        mkdir -p "$HOME/.gradle"
-        cat >> "$HOME/.gradle/gradle.properties" <<'EOF'
-        org.gradle.jvmargs=-Xmx10g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1g
-        kotlin.daemon.jvmargs=-Xmx4g
-        EOF
-        # Make sure no stale daemon is hanging around with the old args.
-        ./gradlew --stop || true
 
     - name: Build Unsigned iOS App
       run: |
