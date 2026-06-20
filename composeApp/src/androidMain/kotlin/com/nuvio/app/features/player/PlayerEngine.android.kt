@@ -1328,6 +1328,92 @@ private fun guessSubtitleMime(url: String): String {
     }
 }
 
+private fun getVlcMediaInfoJson(mediaPlayer: MediaPlayer): String {
+    val media = mediaPlayer.media ?: return "{}"
+    
+    var videoCodec = ""
+    var videoWidth = 0
+    var videoHeight = 0
+    var fps = 0.0
+    var videoBitrateKbps = 0
+    
+    var audioCodec = ""
+    var audioChannels = 0
+    var audioSampleRate = 0
+    
+    var hdrFormat = ""
+    var dvProfile = ""
+    var gamma = ""
+    var primaries = ""
+
+    try {
+        val trackCount = media.trackCount
+        for (i in 0 until trackCount) {
+            val track = media.getTrack(i) ?: continue
+            if (track.type == IMedia.Track.Type.Video) {
+                val vt = track as? IMedia.VideoTrack
+                videoCodec = track.codec ?: ""
+                videoBitrateKbps = (track.bitrate / 1000).toInt()
+                if (vt != null) {
+                    videoWidth = vt.width
+                    videoHeight = vt.height
+                    if (vt.frameRateDen > 0) {
+                        fps = vt.frameRateNum.toDouble() / vt.frameRateDen.toDouble()
+                    }
+                }
+                
+                // Dolby Vision checks
+                val codecLower = videoCodec.lowercase()
+                if (codecLower.contains("dvhe") || codecLower.contains("dvh1") || codecLower.contains("dvav") || codecLower.contains("dovi")) {
+                    hdrFormat = "dolby_vision"
+                    val parts = codecLower.split('.')
+                    if (parts.size >= 2) {
+                        val p = parts[1].toIntOrNull()
+                        if (p != null) {
+                            dvProfile = "Profile $p"
+                        } else {
+                            dvProfile = parts[1].uppercase()
+                        }
+                    }
+                }
+            } else if (track.type == IMedia.Track.Type.Audio) {
+                val at = track as? IMedia.AudioTrack
+                if (track.id == mediaPlayer.audioTrack || audioCodec.isEmpty()) {
+                    audioCodec = track.codec ?: ""
+                    if (at != null) {
+                        audioChannels = at.channels
+                        audioSampleRate = at.rate
+                    }
+                }
+            }
+        }
+    } catch (e: Exception) {
+        // Safe guard
+    }
+    
+    val json = StringBuilder("{")
+    json.append("\"hdrFormat\":\"").append(hdrFormat).append("\"")
+    if (videoCodec.isNotEmpty()) {
+        json.append(",\"videoCodec\":\"").append(videoCodec).append("\"")
+    }
+    if (dvProfile.isNotEmpty()) {
+        json.append(",\"dvProfile\":\"").append(dvProfile).append("\"")
+    }
+    json.append(",\"videoWidth\":").append(videoWidth)
+    json.append(",\"videoHeight\":").append(videoHeight)
+    json.append(",\"fps\":").append(fps)
+    json.append(",\"videoBitrateKbps\":").append(videoBitrateKbps)
+    if (audioCodec.isNotEmpty()) {
+        json.append(",\"audioCodec\":\"").append(audioCodec).append("\"")
+    }
+    json.append(",\"audioChannels\":").append(audioChannels)
+    json.append(",\"audioSampleRate\":").append(audioSampleRate)
+    json.append(",\"gamma\":\"").append(gamma).append("\"")
+    json.append(",\"primaries\":\"").append(primaries).append("\"")
+    json.append("}")
+    return json.toString()
+}
+
 @Composable
 private fun VlcPlayerSurface(
     sourceUrl: String,
@@ -1465,6 +1551,7 @@ private fun VlcPlayerSurface(
                     if (event.type == MediaPlayer.Event.Playing) {
                         latestOnError.value(null)
                     }
+                    val infoJson = getVlcMediaInfoJson(mediaPlayer)
                     latestOnSnapshot.value(
                         PlayerPlaybackSnapshot(
                             isLoading = isLoading,
@@ -1474,10 +1561,12 @@ private fun VlcPlayerSurface(
                             positionMs = mediaPlayer.time,
                             bufferedPositionMs = lastBufferedPositionMs.coerceAtLeast(mediaPlayer.time),
                             playbackSpeed = mediaPlayer.rate,
+                            mediaInfoJson = infoJson,
                         )
                     )
                 }
                 MediaPlayer.Event.Paused -> {
+                    val infoJson = getVlcMediaInfoJson(mediaPlayer)
                     latestOnSnapshot.value(
                         PlayerPlaybackSnapshot(
                             isLoading = isLoading,
@@ -1487,10 +1576,12 @@ private fun VlcPlayerSurface(
                             positionMs = mediaPlayer.time,
                             bufferedPositionMs = lastBufferedPositionMs.coerceAtLeast(mediaPlayer.time),
                             playbackSpeed = mediaPlayer.rate,
+                            mediaInfoJson = infoJson,
                         )
                     )
                 }
                 MediaPlayer.Event.EndReached -> {
+                    val infoJson = getVlcMediaInfoJson(mediaPlayer)
                     latestOnSnapshot.value(
                         PlayerPlaybackSnapshot(
                             isLoading = false,
@@ -1500,6 +1591,7 @@ private fun VlcPlayerSurface(
                             positionMs = mediaPlayer.time,
                             bufferedPositionMs = mediaPlayer.length,
                             playbackSpeed = mediaPlayer.rate,
+                            mediaInfoJson = infoJson,
                         )
                     )
                 }
@@ -1627,6 +1719,7 @@ private fun VlcPlayerSurface(
     LaunchedEffect(mediaPlayer) {
         while (isActive) {
             if (mediaPlayer.isPlaying) {
+                val infoJson = getVlcMediaInfoJson(mediaPlayer)
                 latestOnSnapshot.value(
                     PlayerPlaybackSnapshot(
                         isLoading = false,
@@ -1636,6 +1729,7 @@ private fun VlcPlayerSurface(
                         positionMs = mediaPlayer.time,
                         bufferedPositionMs = mediaPlayer.time,
                         playbackSpeed = mediaPlayer.rate,
+                        mediaInfoJson = infoJson,
                     )
                 )
             }
