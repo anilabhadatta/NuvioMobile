@@ -32,17 +32,17 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Generate Release Keystore
+    - name: Decode Keystore from Secrets
       run: |
-        keytool -genkey -v -keystore release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias release -dname "CN=Nuvio, OU=App, O=Nuvio, L=City, S=State, C=US" -storepass password -keypass password
+        echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > release.jks
 
     - name: Create local.properties
       run: |
         touch local.properties
         echo "NUVIO_RELEASE_STORE_FILE=${{ github.workspace }}/release.jks" >> local.properties
-        echo "NUVIO_RELEASE_STORE_PASSWORD=password" >> local.properties
-        echo "NUVIO_RELEASE_KEY_ALIAS=release" >> local.properties
-        echo "NUVIO_RELEASE_KEY_PASSWORD=password" >> local.properties
+        echo "NUVIO_RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> local.properties
+        echo "NUVIO_RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> local.properties
+        echo "NUVIO_RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}" >> local.properties
         echo "INTRODB_API_URL=${{ secrets.INTRODB_API_URL }}" >> local.properties
         echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> local.properties
         echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> local.properties
