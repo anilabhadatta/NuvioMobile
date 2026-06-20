@@ -11,7 +11,7 @@
 -keepattributes EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations
 
-# ── Kotlin serialization ──────────────────────────────────────────────────────
+# -- Kotlin serialization ------------------------------------------------------
 # R8 can strip the companion object and generated $serializer inner class
 # from @Serializable classes, causing "Serializer not found" crashes at runtime.
 -keepattributes *Annotation*, InnerClasses
@@ -28,41 +28,43 @@
 -keep class kotlinx.serialization.** { *; }
 -dontwarn kotlinx.serialization.**
 
-# ── Compose Navigation (type-safe routes) ─────────────────────────────────────
+# -- Compose Navigation (type-safe routes) -------------------------------------
 # @Serializable data classes used as nav routes: R8 may remove no-arg
 # constructors or rename fields, breaking toRoute<T>() at runtime.
 -keep @kotlinx.serialization.Serializable class * {
     *;
 }
 
-# ── Ktor / Supabase ───────────────────────────────────────────────────────────
+# -- Ktor / Supabase -----------------------------------------------------------
 -keep class io.github.jan.supabase.** { *; }
 -keep class io.ktor.** { *; }
 -dontwarn io.ktor.**
 
-# ── Coil ─────────────────────────────────────────────────────────────────────
+# -- Coil ---------------------------------------------------------------------
 -keep class coil3.** { *; }
 -dontwarn coil3.**
 
-# ── Kermit logger ────────────────────────────────────────────────────────────
+# -- Kermit logger ------------------------------------------------------------
 -keep class co.touchlab.kermit.** { *; }
 -dontwarn co.touchlab.kermit.**
 
-# ── QuickJS plugin runtime ───────────────────────────────────────────────────
+# -- QuickJS plugin runtime ---------------------------------------------------
 -keep class com.dokar.quickjs.** { *; }
 -keep class com.nuvio.app.features.plugins.** { *; }
 
-# ── P2P / TorrServer ────────────────────────────────────────────────────────
+# -- P2P / TorrServer --------------------------------------------------------
 -keep class com.nuvio.app.features.p2p.** { *; }
 
-# ── Media3 / ExoPlayer ──────────────────────────────────────────────────────
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+
+# Media3 / ExoPlayer classes from local AAR decoders and stock modules.
 -dontwarn androidx.media3.**
 -keep class androidx.media3.** { *; }
 -keep interface androidx.media3.** { *; }
 -keep class com.google.android.exoplayer2.** { *; }
 -keep interface com.google.android.exoplayer2.** { *; }
 
-# ── Specific large composables that crash under R8 optimisation ──────────────
+# -- Specific large composables that crash under R8 optimisation --------------
 -keep class com.nuvio.app.features.catalog.CatalogTargetKind { *; }
 -keep class com.nuvio.app.features.streams.StreamBadgeChipKt { *; }
 -keep class com.nuvio.app.features.streams.StreamBadgeChipSize { *; }
@@ -72,7 +74,7 @@
 -keep class com.nuvio.app.features.player.PlayerScreenKt { *; }
 -keep class com.nuvio.app.features.player.PlayerScreenKt$* { *; }
 
-# ── Common optional security providers used by okhttp ───────────────────────
+# -- Common optional security providers used by okhttp -----------------------
 -dontwarn okhttp3.internal.platform.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
