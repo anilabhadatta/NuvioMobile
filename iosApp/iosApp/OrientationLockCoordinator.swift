@@ -83,9 +83,14 @@ final class OrientationLockCoordinator {
     }
 
     private func setLandscapeLock(enabled: Bool) {
-        let nextOrientations: UIInterfaceOrientationMask = enabled ? .landscape : .allButUpsideDown
+        // iPads support multitasking / split-view and freely rotate — forcing a
+        // geometry update to landscape mid-playback is what causes the transient
+        // half-black frame on iPad. Skip the lock entirely on iPad; the player
+        // layer correctly handles all orientations via viewWillTransition.
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
+        let nextOrientations: UIInterfaceOrientationMask = (enabled && !isIpad) ? .landscape : .allButUpsideDown
         supportedOrientations = nextOrientations
-        requestOrientationUpdate(for: nextOrientations, forceRotate: enabled)
+        requestOrientationUpdate(for: nextOrientations, forceRotate: enabled && !isIpad)
     }
 
     private func requestOrientationUpdate(for mask: UIInterfaceOrientationMask, forceRotate: Bool) {
