@@ -96,7 +96,7 @@ jobs:
     - name: Build Unsigned iOS App
       run: |
         cd iosApp
-        xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" clean build
+        xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" clean build
 
     - name: Package IPA
       run: |
