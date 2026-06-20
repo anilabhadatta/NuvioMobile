@@ -4,3 +4,9 @@ TEAM_ID=
 
 PRODUCT_NAME=Nuvio
 PRODUCT_BUNDLE_IDENTIFIER=com.nuvio.app.Nuvio$(TEAM_ID)
+
+// UIViewLayoutRegion is an iOS 26.0 UIKit symbol used by Compose Multiplatform's
+// CMPLayoutRegion. CMP guards all calls with @available(iOS 26, *), but the static
+// framework still declares the reference. Weak-link it so the linker does not hard-fail
+// when building against SDKs older than iOS 26 (e.g. Xcode 16.4 / iOS 17.5 SDK).
+OTHER_LDFLAGS = $(inherited) -Wl,-U,_OBJC_CLASS_$_UIViewLayoutRegion
