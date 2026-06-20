@@ -84,6 +84,7 @@ jobs:
         kotlin.daemon.jvmargs=-Xmx4g
         org.gradle.parallel=true
         org.gradle.caching=true
+        kotlin.native.cacheKind=none
         EOF
         # Make sure no stale daemon is hanging around with the old args.
         ./gradlew --stop || true
@@ -91,7 +92,7 @@ jobs:
     - name: Build Unsigned iOS App
       run: |
         cd iosApp
-        xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" clean build
+        xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" OTHER_LDFLAGS="-Wl,-U,_OBJC_CLASS_$_UIViewLayoutRegion" clean build
 
     - name: Package IPA
       run: |
