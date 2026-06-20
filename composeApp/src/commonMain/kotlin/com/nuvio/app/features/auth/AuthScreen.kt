@@ -92,6 +92,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun AuthScreen(
     modifier: Modifier = Modifier,
+    onSignedIn: () -> Unit = {},
 ) {
     val authError by AuthRepository.error.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -254,9 +255,10 @@ fun AuthScreen(
                             if (email.isNotBlank() && password.isNotBlank() && !isLoading) {
                                 isLoading = true
                                 scope.launch {
-                                    if (isSignUp) AuthRepository.signUpWithEmail(email, password)
+                                    val result = if (isSignUp) AuthRepository.signUpWithEmail(email, password)
                                     else AuthRepository.signInWithEmail(email, password)
                                     isLoading = false
+                                    if (result.isSuccess) onSignedIn()
                                 }
                             }
                         },
@@ -307,9 +309,10 @@ fun AuthScreen(
                     onClick = {
                         isLoading = true
                         scope.launch {
-                            if (isSignUp) AuthRepository.signUpWithEmail(email, password)
+                            val result = if (isSignUp) AuthRepository.signUpWithEmail(email, password)
                             else AuthRepository.signInWithEmail(email, password)
                             isLoading = false
+                            if (result.isSuccess) onSignedIn()
                         }
                     },
                 )

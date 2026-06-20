@@ -657,7 +657,19 @@ fun App() {
                     }
                 }
                 AppGateScreen.Auth.name -> {
-                    AuthScreen(modifier = Modifier.fillMaxSize())
+                    AuthScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onSignedIn = {
+                            val userId = (AuthRepository.state.value as? AuthState.Authenticated)?.userId
+                            if (userId != null) {
+                                ProfileRepository.ensureLoaded(userId)
+                            }
+                            enterProfileGate(
+                                ProfileRepository.state.value.profiles,
+                                syncOnEnter = true,
+                            )
+                        },
+                    )
                 }
                 AppGateScreen.ProfileSelection.name -> {
                     PlatformBackHandler(enabled = gateScreen == AppGateScreen.ProfileSelection.name) {
