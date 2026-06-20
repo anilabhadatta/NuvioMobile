@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-ios:
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
     - name: Checkout repository
@@ -38,10 +38,10 @@ jobs:
         sed -i '' 's|path: "dist/release/xcframework/Libswscale.xcframework"|url: "https://github.com/mpvkit/MPVKit/releases/download/0.41.0/Libswscale.xcframework.zip", checksum: "e9d660dc6eb27d20a25aa5659a966f07cf1a97ed9049ec19e8a06b3f2aec6b41"|g' Package.swift
         sed -i '' 's|path: "dist/release/xcframework/Libmpv.xcframework"|url: "https://github.com/mpvkit/MPVKit/releases/download/0.41.0/Libmpv.xcframework.zip", checksum: "9ff5077d675a1e12bec98db167a49f46eb57dba567f40558b7758d4f12fb3ae7"|g' Package.swift
 
-    - name: Select stable Xcode 15.4
+    - name: Select stable Xcode 16.1
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '15.4'
+        xcode-version: '16.1'
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -92,11 +92,6 @@ jobs:
         EOF
         # Make sure no stale daemon is hanging around with the old args.
         ./gradlew --stop || true
-
-    - name: Patch Xcode Project Format for Xcode 15.4 Compatibility
-      run: |
-        sed -i '' 's/objectVersion = 77;/objectVersion = 56;/g' iosApp/iosApp.xcodeproj/project.pbxproj
-        sed -i '' 's/preferredProjectObjectVersion = 77;/preferredProjectObjectVersion = 56;/g' iosApp/iosApp.xcodeproj/project.pbxproj
 
     - name: Build Unsigned iOS App
       run: |
