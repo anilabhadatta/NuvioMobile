@@ -2020,6 +2020,7 @@ private fun MainAppContent(
                                 parentMetaType = launch.parentMetaType ?: launch.type,
                                 initialPositionMs = launch.resumePositionMs ?: 0L,
                                 initialProgressFraction = launch.resumeProgressFraction,
+                                contentLanguage = cached.contentLanguage,
                             )
                             if (playerSettings.externalPlayerEnabled) {
                                 openExternalPlayback(playerLaunch)
@@ -2446,6 +2447,7 @@ private fun MainAppContent(
                         torrentTrackers = launch.torrentTrackers,
                         initialPositionMs = launch.initialPositionMs,
                         initialProgressFraction = launch.initialProgressFraction,
+                        contentLanguage = launch.contentLanguage,
                         onBack = {
                             ResumePromptRepository.markPlayerExitedNormally()
                             PlayerLaunchStore.remove(route.launchId)
