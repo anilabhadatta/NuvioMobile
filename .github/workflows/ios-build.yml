@@ -93,6 +93,11 @@ jobs:
         # Make sure no stale daemon is hanging around with the old args.
         ./gradlew --stop || true
 
+    - name: Patch Xcode Project Format for Xcode 15.4 Compatibility
+      run: |
+        sed -i '' 's/objectVersion = 77;/objectVersion = 56;/g' iosApp/iosApp.xcodeproj/project.pbxproj
+        sed -i '' 's/preferredProjectObjectVersion = 77;/preferredProjectObjectVersion = 56;/g' iosApp/iosApp.xcodeproj/project.pbxproj
+
     - name: Build Unsigned iOS App
       run: |
         cd iosApp
