@@ -1,10 +1,14 @@
 name: Android Build v2
 
 on:
+  # push:
+  #   branches: [ "release" ]
   workflow_dispatch:
-  push:
-    branches:
-      - release
+    inputs:
+      build_branch:
+        description: 'Branch to build'
+        required: true
+        default: 'release'
 
 permissions:
   contents: write
@@ -111,7 +115,7 @@ jobs:
         id: version
         run: |
           # Add an offset to match the old workflow's run count
-          version="1.0.$(($GITHUB_RUN_NUMBER + 14))"
+          version="1.0.$(($GITHUB_RUN_NUMBER + 16))"
           echo "name=$version" >> $GITHUB_OUTPUT
         
       - name: Publish to GitHub Releases
