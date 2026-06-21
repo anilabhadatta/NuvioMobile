@@ -101,7 +101,6 @@ jobs:
         run: |
           ./gradlew \
             :androidApp:assembleFullRelease \
-            :androidApp:assemblePlaystoreRelease \
             -Pnuvio.splitAbi=true \
             --stacktrace
 
