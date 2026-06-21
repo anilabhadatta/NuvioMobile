@@ -126,7 +126,8 @@ final class MPVPlayerBridgeImpl: NSObject, NuvioPlayerBridge {
         bold: Bool,
         fontSize: Float,
         subPos: Int32,
-        shadowEnabled: Bool
+        shadowEnabled: Bool,
+        shadowDensity: Float
     ) {
         playerVC?.applySubtitleStyle(
             textColor: textColor,
@@ -136,7 +137,8 @@ final class MPVPlayerBridgeImpl: NSObject, NuvioPlayerBridge {
             bold: bold,
             fontSize: fontSize,
             subPos: Int(subPos),
-            shadowEnabled: shadowEnabled
+            shadowEnabled: shadowEnabled,
+            shadowDensity: shadowDensity
         )
     }
 
