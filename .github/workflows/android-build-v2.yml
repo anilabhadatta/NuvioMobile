@@ -110,7 +110,8 @@ jobs:
       - name: Compute build version
         id: version
         run: |
-          version="1.0.${{ github.run_number }}"
+          # Add an offset to match the old workflow's run count
+          version="1.0.$(($GITHUB_RUN_NUMBER + 14))"
           echo "name=$version" >> $GITHUB_OUTPUT
         
       - name: Publish to GitHub Releases
