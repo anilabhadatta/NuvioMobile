@@ -23,6 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -51,9 +54,13 @@ import nuvio.composeapp.generated.resources.compose_player_reload
 import nuvio.composeapp.generated.resources.compose_player_reset
 import nuvio.composeapp.generated.resources.compose_player_reset_defaults
 import nuvio.composeapp.generated.resources.compose_player_select_addon_subtitle_first
+import nuvio.composeapp.generated.resources.compose_player_shadow
+import nuvio.composeapp.generated.resources.compose_player_shadow_density
 import nuvio.composeapp.generated.resources.compose_player_style
 import nuvio.composeapp.generated.resources.compose_player_subtitle_delay
 import nuvio.composeapp.generated.resources.compose_player_text_opacity
+import nuvio.composeapp.generated.resources.settings_playback_subtitle_background_color
+import nuvio.composeapp.generated.resources.settings_playback_subtitle_background_opacity
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -74,6 +81,21 @@ fun SubtitleStylePanel(
     onAutoSyncReload: () -> Unit,
 ) {
     val sectionGap = if (isCompact) 12.dp else 16.dp
+
+    val localStyle = remember { mutableStateOf(style) }
+
+    LaunchedEffect(style) {
+        if (style != localStyle.value) {
+            localStyle.value = style
+        }
+    }
+
+    val commit: (SubtitleStyleState) -> Unit = { newStyle ->
+        localStyle.value = newStyle
+        onStyleChanged(newStyle)
+    }
+
+    val currentStyle = localStyle.value
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -109,76 +131,158 @@ fun SubtitleStylePanel(
 
         SubtitleStyleSection(title = stringResource(Res.string.compose_player_font_size)) {
             SubtitleStyleStepper(
-                value = stringResource(Res.string.compose_player_font_size_value, style.fontSizeSp),
+                value = stringResource(Res.string.compose_player_font_size_value, currentStyle.fontSizeSp),
                 onDecrease = {
-                    onStyleChanged(style.copy(fontSizeSp = (style.fontSizeSp - 2).coerceAtLeast(12)))
+                    commit(currentStyle.copy(fontSizeSp = (currentStyle.fontSizeSp - 2).coerceAtLeast(12)))
                 },
                 onIncrease = {
-                    onStyleChanged(style.copy(fontSizeSp = (style.fontSizeSp + 2).coerceAtMost(40)))
+                    commit(currentStyle.copy(fontSizeSp = (currentStyle.fontSizeSp + 2).coerceAtMost(40)))
                 },
             )
         }
 
         SubtitleStyleSection(title = stringResource(Res.string.compose_player_bold)) {
             SubtitleToggleChip(
-                enabled = style.bold,
-                onClick = { onStyleChanged(style.copy(bold = !style.bold)) },
+                enabled = currentStyle.bold,
+                onClick = { commit(currentStyle.copy(bold = !currentStyle.bold)) },
             )
         }
 
         SubtitleStyleSection(title = stringResource(Res.string.compose_player_color)) {
             SubtitleColorPicker(
                 colors = SubtitleColorSwatches,
-                selectedColor = style.textColor,
+                selectedColor = currentStyle.textColor,
                 onColorSelected = { color ->
-                    onStyleChanged(style.copy(textColor = color.copy(alpha = style.textColor.alpha)))
+                    commit(currentStyle.copy(textColor = color.copy(alpha = currentStyle.textColor.alpha)))
                 },
             )
         }
 
         SubtitleStyleSection(title = stringResource(Res.string.compose_player_text_opacity)) {
-            val opacity = (style.textColor.alpha * 100f).roundToInt().coerceIn(0, 100)
+            val opacity = (currentStyle.textColor.alpha * 100f).roundToInt().coerceIn(0, 100)
             SubtitleStyleStepper(
                 value = "$opacity%",
                 onDecrease = {
                     val alpha = (opacity - 10).coerceAtLeast(0) / 100f
-                    onStyleChanged(style.copy(textColor = style.textColor.copy(alpha = alpha)))
+                    commit(currentStyle.copy(textColor = currentStyle.textColor.copy(alpha = alpha)))
                 },
                 onIncrease = {
                     val alpha = (opacity + 10).coerceAtMost(100) / 100f
-                    onStyleChanged(style.copy(textColor = style.textColor.copy(alpha = alpha)))
+                    commit(currentStyle.copy(textColor = currentStyle.textColor.copy(alpha = alpha)))
                 },
             )
         }
 
         SubtitleStyleSection(title = stringResource(Res.string.compose_player_outline)) {
             SubtitleToggleChip(
-                enabled = style.outlineEnabled,
-                onClick = { onStyleChanged(style.copy(outlineEnabled = !style.outlineEnabled)) },
+                enabled = currentStyle.outlineEnabled,
+                onClick = {
+                    val newEnabled = !currentStyle.outlineEnabled
+                    if (newEnabled) {
+                        commit(currentStyle.copy(
+                            outlineEnabled = true,
+                            shadowEnabled = false,
+                            backgroundColor = Color.Transparent,
+                        ))
+                    } else {
+                        commit(currentStyle.copy(outlineEnabled = false))
+                    }
+                },
             )
-            Text(
-                text = stringResource(Res.string.compose_player_outline_color),
-                color = Color.White.copy(alpha = 0.72f),
-                style = MaterialTheme.typography.bodySmall,
+            if (currentStyle.outlineEnabled) {
+                Text(
+                    text = stringResource(Res.string.compose_player_outline_color),
+                    color = Color.White.copy(alpha = 0.72f),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                SubtitleColorPicker(
+                    colors = SubtitleOutlineColorSwatches,
+                    selectedColor = currentStyle.outlineColor,
+                    enabled = currentStyle.outlineEnabled,
+                    onColorSelected = { color ->
+                        commit(currentStyle.copy(outlineEnabled = true, outlineColor = color))
+                    },
+                )
+            }
+        }
+
+        SubtitleStyleSection(title = stringResource(Res.string.compose_player_shadow)) {
+            SubtitleToggleChip(
+                enabled = currentStyle.shadowEnabled,
+                onClick = {
+                    val newEnabled = !currentStyle.shadowEnabled
+                    if (newEnabled) {
+                        commit(currentStyle.copy(
+                            shadowEnabled = true,
+                            outlineEnabled = false,
+                            backgroundColor = Color.Transparent,
+                        ))
+                    } else {
+                        commit(currentStyle.copy(shadowEnabled = false))
+                    }
+                },
             )
+            if (currentStyle.shadowEnabled) {
+                Text(
+                    text = stringResource(Res.string.compose_player_shadow_density),
+                    color = Color.White.copy(alpha = 0.72f),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                SubtitleStyleStepper(
+                    value = ((currentStyle.shadowDensity * 10f).roundToInt() / 10f).toString(),
+                    onDecrease = {
+                        commit(currentStyle.copy(shadowDensity = (currentStyle.shadowDensity - 0.2f).coerceAtLeast(0.2f)))
+                    },
+                    onIncrease = {
+                        commit(currentStyle.copy(shadowDensity = (currentStyle.shadowDensity + 0.2f).coerceAtMost(5.0f)))
+                    },
+                )
+            }
+        }
+
+        SubtitleStyleSection(title = stringResource(Res.string.settings_playback_subtitle_background_color)) {
             SubtitleColorPicker(
-                colors = SubtitleOutlineColorSwatches,
-                selectedColor = style.outlineColor,
-                enabled = style.outlineEnabled,
+                colors = SubtitleBackgroundColorSwatches,
+                selectedColor = currentStyle.backgroundColor,
                 onColorSelected = { color ->
-                    onStyleChanged(style.copy(outlineEnabled = true, outlineColor = color))
+                    if (color.alpha == 0f) {
+                        commit(currentStyle.copy(backgroundColor = Color.Transparent))
+                    } else {
+                        commit(currentStyle.copy(
+                            backgroundColor = color,
+                            outlineEnabled = false,
+                            shadowEnabled = false,
+                        ))
+                    }
                 },
             )
         }
 
+        if (currentStyle.backgroundColor.alpha > 0f) {
+            SubtitleStyleSection(title = stringResource(Res.string.settings_playback_subtitle_background_opacity)) {
+                val bgOpacity = (currentStyle.backgroundColor.alpha * 100f).roundToInt().coerceIn(0, 100)
+                SubtitleStyleStepper(
+                    value = "$bgOpacity%",
+                    onDecrease = {
+                        val newAlpha = (bgOpacity - 10).coerceAtLeast(5) / 100f
+                        commit(currentStyle.copy(backgroundColor = currentStyle.backgroundColor.copy(alpha = newAlpha)))
+                    },
+                    onIncrease = {
+                        val newAlpha = (bgOpacity + 10).coerceAtMost(100) / 100f
+                        commit(currentStyle.copy(backgroundColor = currentStyle.backgroundColor.copy(alpha = newAlpha)))
+                    },
+                )
+            }
+        }
+
         SubtitleStyleSection(title = stringResource(Res.string.compose_player_bottom_offset)) {
             SubtitleStyleStepper(
-                value = style.bottomOffset.toString(),
+                value = currentStyle.bottomOffset.toString(),
                 onDecrease = {
-                    onStyleChanged(style.copy(bottomOffset = (style.bottomOffset - 5).coerceAtLeast(0)))
+                    commit(currentStyle.copy(bottomOffset = (currentStyle.bottomOffset - 5).coerceAtLeast(0)))
                 },
                 onIncrease = {
-                    onStyleChanged(style.copy(bottomOffset = (style.bottomOffset + 5).coerceAtMost(200)))
+                    commit(currentStyle.copy(bottomOffset = (currentStyle.bottomOffset + 5).coerceAtMost(200)))
                 },
             )
         }
@@ -193,8 +297,89 @@ fun SubtitleStylePanel(
 
         SubtitleResetAction(
             label = stringResource(Res.string.compose_player_reset_defaults),
-            onClick = { onStyleChanged(SubtitleStyleState.DEFAULT) },
+            onClick = { commit(SubtitleStyleState.DEFAULT) },
         )
+    }
+}
+
+@Composable
+private fun SubtitleAutoSyncSection(
+    selectedAddonSubtitle: AddonSubtitle?,
+    state: SubtitleAutoSyncUiState,
+    onCapture: () -> Unit,
+    onCueSelected: (SubtitleSyncCue) -> Unit,
+    onReload: () -> Unit,
+) {
+    val tokens = MaterialTheme.nuvio
+    val capturedPositionMs = state.capturedPositionMs
+    val nearestCues = state.nearestCues
+
+    SubtitleStyleSection(title = stringResource(Res.string.compose_player_auto_sync)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SubtitleTextAction(
+                label = stringResource(Res.string.compose_player_reload),
+                enabled = selectedAddonSubtitle != null,
+                onClick = onReload,
+            )
+            SubtitleTextAction(
+                label = stringResource(Res.string.compose_player_capture_line),
+                enabled = selectedAddonSubtitle != null,
+                onClick = onCapture,
+            )
+        }
+
+        when {
+            selectedAddonSubtitle == null -> {
+                SubtitleHelperText(stringResource(Res.string.compose_player_select_addon_subtitle_first))
+            }
+
+            state.isLoading -> {
+                SubtitleHelperText(stringResource(Res.string.compose_player_loading_lines))
+            }
+
+            state.errorMessage != null -> {
+                Text(
+                    text = state.errorMessage,
+                    color = tokens.colors.danger,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            capturedPositionMs != null && nearestCues.isEmpty() -> {
+                SubtitleHelperText(stringResource(Res.string.compose_player_no_subtitle_lines_found))
+            }
+        }
+
+        nearestCues.forEach { cue ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .clickable { onCueSelected(cue) }
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Text(
+                    text = formatCueTimestamp(cue.startTimeMs),
+                    color = tokens.colors.accent,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = cue.text,
+                    modifier = Modifier.weight(1f),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 
@@ -315,101 +500,25 @@ private fun SubtitleColorPicker(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         colors.forEach { color ->
-            val selected = sameRgb(color, selectedColor)
+            val selected = if (color.alpha == 0f && selectedColor.alpha == 0f) {
+                true
+            } else if (color.alpha == 0f || selectedColor.alpha == 0f) {
+                false
+            } else {
+                sameRgb(color, selectedColor)
+            }
             Box(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(color)
+                    .background(if (color.alpha == 0f) Color.White.copy(alpha = 0.12f) else color)
                     .border(
                         width = 2.dp,
                         color = if (selected) Color.White else Color.White.copy(alpha = 0.22f),
                         shape = CircleShape,
                     )
-                    .clickable(onClick = { onColorSelected(color) }),
+                    .clickable(enabled = enabled, onClick = { onColorSelected(color) }),
             )
-        }
-    }
-}
-
-@Composable
-private fun SubtitleAutoSyncSection(
-    selectedAddonSubtitle: AddonSubtitle?,
-    state: SubtitleAutoSyncUiState,
-    onCapture: () -> Unit,
-    onCueSelected: (SubtitleSyncCue) -> Unit,
-    onReload: () -> Unit,
-) {
-    val tokens = MaterialTheme.nuvio
-    val capturedPositionMs = state.capturedPositionMs
-    val nearestCues = if (capturedPositionMs == null) {
-        emptyList()
-    } else {
-        state.cues.sortedBy { abs(it.startTimeMs - capturedPositionMs) }.take(5)
-    }
-
-    SubtitleStyleSection(title = stringResource(Res.string.compose_player_auto_sync)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SubtitleTextAction(
-                label = stringResource(Res.string.compose_player_reload),
-                enabled = selectedAddonSubtitle != null,
-                onClick = onReload,
-            )
-            SubtitleTextAction(
-                label = stringResource(Res.string.compose_player_capture_line),
-                enabled = selectedAddonSubtitle != null,
-                onClick = onCapture,
-            )
-        }
-
-        when {
-            selectedAddonSubtitle == null -> {
-                SubtitleHelperText(stringResource(Res.string.compose_player_select_addon_subtitle_first))
-            }
-
-            state.isLoading -> {
-                SubtitleHelperText(stringResource(Res.string.compose_player_loading_lines))
-            }
-
-            state.errorMessage != null -> {
-                Text(
-                    text = state.errorMessage,
-                    color = tokens.colors.danger,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-
-            capturedPositionMs != null && nearestCues.isEmpty() -> {
-                SubtitleHelperText(stringResource(Res.string.compose_player_no_subtitle_lines_found))
-            }
-        }
-
-        nearestCues.forEach { cue ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White.copy(alpha = 0.06f))
-                    .clickable { onCueSelected(cue) }
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Text(
-                    text = formatCueTimestamp(cue.startTimeMs),
-                    color = tokens.colors.accent,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = cue.text,
-                    modifier = Modifier.weight(1f),
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
 }
