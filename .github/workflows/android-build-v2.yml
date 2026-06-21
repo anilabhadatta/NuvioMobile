@@ -1,10 +1,13 @@
-name: Android Build Test
+name: Android Build v2
 
 on:
   workflow_dispatch:
   push:
     branches:
       - release
+
+permissions:
+  contents: write
 
 jobs:
   prepare:
