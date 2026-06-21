@@ -117,4 +117,4 @@ jobs:
           name: "Android Mobile v${{ steps.version.outputs.name }}"
           draft: false
           prerelease: true
-        files: androidApp/build/outputs/apk/full/release/*.apk
+          files: androidApp/build/outputs/apk/full/release/*.apk
