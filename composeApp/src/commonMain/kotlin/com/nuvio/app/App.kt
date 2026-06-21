@@ -587,12 +587,8 @@ fun App() {
                 is AuthState.Authenticated -> {
                     val authenticatedState = authState as AuthState.Authenticated
                     ProfileRepository.ensureLoaded(authenticatedState.userId)
-                    if (
-                        gateScreen == AppGateScreen.Loading.name ||
-                        gateScreen == AppGateScreen.Auth.name ||
-                        (gateScreen == AppGateScreen.ProfileSelection.name && autoSkipProfileSelection && cachedProfiles.isNotEmpty())
-                    ) {
-                        enterProfileGate(cachedProfiles, syncOnEnter = true)
+                    if (gateScreen == AppGateScreen.Loading.name || gateScreen == AppGateScreen.Auth.name) {
+                        enterProfileGate(ProfileRepository.state.value.profiles, syncOnEnter = true)
                     }
                 }
             }
