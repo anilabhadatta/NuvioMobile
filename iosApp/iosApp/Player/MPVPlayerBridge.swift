@@ -320,42 +320,6 @@ final class MPVPlayerViewController: UIViewController {
         attemptStartPendingLoad()
     }
 
-    /// Called by UIKit just before a device-orientation rotation begins.
-    /// We synchronously update the Metal layer inside the coordinator's animation
-    /// block so the drawable size tracks the new bounds atomically — this prevents
-    /// the half-black / mis-sized frame that appears when the layer retains the
-    /// old drawable size for the first frames of the new orientation.
-    override func viewWillTransition(
-        to size: CGSize,
-        with coordinator: UIViewControllerTransitionCoordinator
-    ) {
-        super.viewWillTransition(to: size, with: coordinator)
-
-        // Immediately resize the layer to the incoming size so MPV never
-        // renders into a stale drawable during the rotation animation.
-        let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
-        let drawableSize = CGSize(
-            width: (size.width * scale).rounded(.toNearestOrAwayFromZero),
-            height: (size.height * scale).rounded(.toNearestOrAwayFromZero)
-        )
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        metalLayer.contentsScale = scale
-        metalLayer.frame = CGRect(origin: .zero, size: size)
-        if drawableSize != lastAppliedDrawableSize {
-            metalLayer.drawableSize = drawableSize
-            lastAppliedDrawableSize = drawableSize
-        }
-        CATransaction.commit()
-
-        coordinator.animate(alongsideTransition: { [weak self] _ in
-            self?.layoutMetalLayer()
-        }, completion: { [weak self] _ in
-            self?.layoutMetalLayer()
-            self?.refreshImmersiveSystemUI()
-        })
-    }
-
     private func layoutMetalLayer() {
         let bounds = view.bounds
         guard bounds.width > 1, bounds.height > 1 else { return }
@@ -511,13 +475,7 @@ final class MPVPlayerViewController: UIViewController {
         guard isViewLoaded, view.window != nil else { return false }
         let bounds = view.bounds
         guard bounds.width > 1, bounds.height > 1 else { return false }
-
-        // On iPhone the player is forced to landscape, so a portrait-sized viewport
-        // means the rotation hasn't happened yet — wait up to 0.9s for it.
-        // On iPad the device is NOT locked to landscape (it can legitimately play in
-        // portrait), so we must never gate on orientation here.
-        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
-        if isIpad || bounds.width >= bounds.height { return true }
+        if bounds.width >= bounds.height { return true }
 
         let age = ProcessInfo.processInfo.systemUptime - queuedAtUptime
         return age >= 0.9
