@@ -30,6 +30,17 @@ jobs:
         submodules: recursive
         fetch-depth: 1
 
+    - name: Clean stale submodule references
+      run: |
+        # Remove any stale mpvKt submodule config if it exists
+        git config --file .git/config --remove-section submodule.mpvKt 2>/dev/null || true
+        git config --file MPVKit/.git/config --remove-section submodule.mpvKt 2>/dev/null || true
+        rm -rf .git/modules/mpvKt 2>/dev/null || true
+        rm -rf MPVKit/.git/modules/mpvKt 2>/dev/null || true
+        # Re-sync submodules to clean state
+        git submodule sync --recursive
+        git submodule update --init --recursive --force
+
     # Uses maxim-lobanov/setup-xcode to reliably select the latest stable
     # Xcode rather than hardcoding a path. The project was created with Xcode
     # 16.2 (see project.pbxproj CreatedOnToolsVersion). latest-stable will
