@@ -36,20 +36,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false
           fetch-depth: 1
           ref: release
 
-      - name: Clean stale submodule references
+      - name: Clean stale submodule references and fetch
         run: |
           # Remove any stale mpvKt submodule config if it exists
           git config --file .git/config --remove-section submodule.mpvKt 2>/dev/null || true
-          git config --file MPVKit/.git/config --remove-section submodule.mpvKt 2>/dev/null || true
           rm -rf .git/modules/mpvKt 2>/dev/null || true
-          rm -rf MPVKit/.git/modules/mpvKt 2>/dev/null || true
-          # Re-sync submodules to clean state
+          # Initialize and fetch submodules
           git submodule sync --recursive
           git submodule update --init --recursive --force
+          # Clean nested stale references in MPVKit if needed
+          if [ -d "MPVKit/.git" ]; then
+            git config --file MPVKit/.git/config --remove-section submodule.mpvKt 2>/dev/null || true
+            rm -rf MPVKit/.git/modules/mpvKt 2>/dev/null || true
+          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
