@@ -32,17 +32,15 @@ jobs:
 
     - name: Clean stale submodule references and fetch
       run: |
-        # Remove any stale mpvKt submodule config if it exists
+        # Remove stale mpvKt submodule from git index and config
+        git rm --cached mpvKt 2>/dev/null || true
+        git config --file .gitmodules --remove-section submodule.mpvKt 2>/dev/null || true
         git config --file .git/config --remove-section submodule.mpvKt 2>/dev/null || true
         rm -rf .git/modules/mpvKt 2>/dev/null || true
-        # Initialize and fetch submodules
+        rm -rf mpvKt 2>/dev/null || true
+        # Initialize and fetch submodules cleanly
         git submodule sync --recursive
         git submodule update --init --recursive --force
-        # Clean nested stale references in MPVKit if needed
-        if [ -d "MPVKit/.git" ]; then
-          git config --file MPVKit/.git/config --remove-section submodule.mpvKt 2>/dev/null || true
-          rm -rf MPVKit/.git/modules/mpvKt 2>/dev/null || true
-        fi
 
     # Uses maxim-lobanov/setup-xcode to reliably select the latest stable
     # Xcode rather than hardcoding a path. The project was created with Xcode
