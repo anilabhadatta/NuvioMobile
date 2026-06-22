@@ -81,10 +81,10 @@ jobs:
 
       - name: Configure Android release signing
         env:
-          KEYSTORE_BASE64: ${{ secrets.NUVIO_RELEASE_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.NUVIO_RELEASE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.NUVIO_RELEASE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.NUVIO_RELEASE_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
           if [[ -n "${KEYSTORE_BASE64:-}" ]]; then
