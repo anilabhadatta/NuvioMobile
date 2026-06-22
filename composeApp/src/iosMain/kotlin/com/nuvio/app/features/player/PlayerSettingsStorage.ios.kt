@@ -166,9 +166,6 @@ actual object PlayerSettingsStorage {
         NSUserDefaults.standardUserDefaults.setInteger(value.toLong(), forKey = ProfileScopedKey.of(keyBase))
     }
 
-    actual fun loadAndroidInternalPlayerMode(): String? = null
-    actual fun saveAndroidInternalPlayerMode(mode: String) {}
-
     actual fun loadShowLoadingOverlay(): Boolean? {
         val defaults = NSUserDefaults.standardUserDefaults
         val key = ProfileScopedKey.of(showLoadingOverlayKey)

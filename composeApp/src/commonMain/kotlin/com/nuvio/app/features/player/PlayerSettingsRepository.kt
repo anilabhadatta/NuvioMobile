@@ -31,13 +31,7 @@ fun snapToAllowedTimeout(value: Int): Int {
     return bestValue
 }
 
-enum class InternalPlayerMode {
-    EXOPLAYER,
-    LIBVLC
-}
-
 data class PlayerSettingsUiState(
-    val androidInternalPlayerMode: InternalPlayerMode = InternalPlayerMode.EXOPLAYER,
     val showLoadingOverlay: Boolean = true,
     val resizeMode: PlayerResizeMode = PlayerResizeMode.Fit,
     val holdToSpeedEnabled: Boolean = true,
@@ -98,7 +92,6 @@ object PlayerSettingsRepository {
     val uiState: StateFlow<PlayerSettingsUiState> = _uiState.asStateFlow()
 
     private var hasLoaded = false
-    private var androidInternalPlayerMode = InternalPlayerMode.EXOPLAYER
     private var showLoadingOverlay = true
     private var resizeMode = PlayerResizeMode.Fit
     private var holdToSpeedEnabled = true
@@ -164,7 +157,6 @@ object PlayerSettingsRepository {
 
     fun clearLocalState() {
         hasLoaded = false
-        androidInternalPlayerMode = InternalPlayerMode.EXOPLAYER
         showLoadingOverlay = true
         resizeMode = PlayerResizeMode.Fit
         holdToSpeedEnabled = true
@@ -223,9 +215,6 @@ object PlayerSettingsRepository {
 
     private fun loadFromDisk() {
         hasLoaded = true
-        androidInternalPlayerMode = PlayerSettingsStorage.loadAndroidInternalPlayerMode()
-            ?.let { runCatching { InternalPlayerMode.valueOf(it) }.getOrNull() }
-            ?: InternalPlayerMode.EXOPLAYER
         showLoadingOverlay = PlayerSettingsStorage.loadShowLoadingOverlay() ?: true
         resizeMode = PlayerSettingsStorage.loadResizeMode()
             ?.let { runCatching { PlayerResizeMode.valueOf(it) }.getOrNull() }
@@ -522,14 +511,6 @@ object PlayerSettingsRepository {
         mapDV7ToHevc = enabled
         publish()
         PlayerSettingsStorage.saveMapDV7ToHevc(enabled)
-    }
-
-    fun setAndroidInternalPlayerMode(mode: InternalPlayerMode) {
-        ensureLoaded()
-        if (androidInternalPlayerMode == mode) return
-        androidInternalPlayerMode = mode
-        publish()
-        PlayerSettingsStorage.saveAndroidInternalPlayerMode(mode.name)
     }
 
     fun setTunnelingEnabled(enabled: Boolean) {
@@ -861,7 +842,6 @@ object PlayerSettingsRepository {
 
     private fun publish() {
         _uiState.value = PlayerSettingsUiState(
-            androidInternalPlayerMode = androidInternalPlayerMode,
             showLoadingOverlay = showLoadingOverlay,
             resizeMode = resizeMode,
             holdToSpeedEnabled = holdToSpeedEnabled,
