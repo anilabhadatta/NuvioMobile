@@ -320,35 +320,20 @@ final class MPVPlayerViewController: UIViewController {
         attemptStartPendingLoad()
     }
 
-    override func viewWillTransition(
-        to size: CGSize,
-        with coordinator: UIViewControllerTransitionCoordinator
-    ) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate(
-            alongsideTransition: { [weak self] _ in
-                self?.layoutMetalLayer(targetSize: size, animated: true)
-            },
-            completion: { [weak self] _ in
-                self?.layoutMetalLayer()
-            }
-        )
-    }
-
-    private func layoutMetalLayer(targetSize: CGSize? = nil, animated: Bool = false) {
-        let size = targetSize ?? view.bounds.size
-        guard size.width > 1, size.height > 1 else { return }
+    private func layoutMetalLayer() {
+        let bounds = view.bounds
+        guard bounds.width > 1, bounds.height > 1 else { return }
 
         let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
         let drawableSize = CGSize(
-            width: (size.width * scale).rounded(.toNearestOrAwayFromZero),
-            height: (size.height * scale).rounded(.toNearestOrAwayFromZero)
+            width: (bounds.width * scale).rounded(.toNearestOrAwayFromZero),
+            height: (bounds.height * scale).rounded(.toNearestOrAwayFromZero)
         )
 
         CATransaction.begin()
-        CATransaction.setDisableActions(!animated)
+        CATransaction.setDisableActions(true)
         metalLayer.contentsScale = scale
-        metalLayer.frame = CGRect(origin: .zero, size: size)
+        metalLayer.frame = CGRect(origin: .zero, size: bounds.size)
         if drawableSize != lastAppliedDrawableSize {
             metalLayer.drawableSize = drawableSize
             lastAppliedDrawableSize = drawableSize
