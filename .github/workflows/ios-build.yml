@@ -19,7 +19,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 90
     env:
-      NUVIO_IOS_DISTRIBUTION: appstore
+      NUVIO_IOS_DISTRIBUTION: full
 
     steps:
     - name: Checkout repository
