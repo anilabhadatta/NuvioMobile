@@ -690,8 +690,7 @@ final class MPVPlayerViewController: UIViewController {
     ) {
         guard mpv != nil else { return }
 
-        // Common text properties
-        checkError(mpv_set_property_string(mpv, "sub-ass-override", "force"))
+        checkError(mpv_set_property_string(mpv, "sub-ass-override", "no"))
         checkError(mpv_set_property_string(mpv, "sub-color", textColor))
         checkError(mpv_set_property_string(mpv, "sub-outline-color", outlineColor))
         setStringProperty("sub-bold", bold ? "yes" : "no")
