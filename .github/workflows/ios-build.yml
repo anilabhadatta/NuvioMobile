@@ -1,8 +1,8 @@
 name: Build iOS App
 
 on:
-  # push:
-  #   branches: [ "release" ]
+  push:
+    branches: [ "release" ]
   workflow_dispatch:
     inputs:
       build_branch:
