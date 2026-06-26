@@ -355,7 +355,6 @@ internal fun PlayerScreenRuntime.switchToDownloadedEpisode(downloadItem: Downloa
 internal fun PlayerScreenRuntime.playNextEpisode() {
     scope.launchPlayerNextEpisodeAutoPlay(
         previousJob = nextEpisodeAutoPlayJob,
-        immediate = true,
         nextEpisodeInfo = nextEpisodeInfo,
         allEpisodes = playerMetaVideos,
         parentMetaId = parentMetaId,
