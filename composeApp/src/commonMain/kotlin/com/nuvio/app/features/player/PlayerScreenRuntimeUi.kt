@@ -352,7 +352,7 @@ private fun BoxScope.RenderPlaybackOverlays(
         nextEpisodeAutoPlayCountdown = nextEpisodeAutoPlayCountdown,
         onPlayNextEpisode = {
             nextEpisodeAutoPlayJob?.cancel()
-            playNextEpisode(immediate = true)
+            playNextEpisode()
         },
         onDismissNextEpisode = {
             nextEpisodeAutoPlayJob?.cancel()
@@ -488,11 +488,7 @@ private fun PlayerScreenRuntime.RenderPlayerModals(displayedPositionMs: Long) {
                 season = episode.season,
                 episode = episode.episode,
             )
-            episodeStreamsPanelState = EpisodeStreamsPanelState(
-                showStreams = true,
-                selectedEpisode = episode,
-                streamsUiState = PlayerStreamsRepository.episodeStreamsState.value,
-            )
+            episodeStreamsPanelState = EpisodeStreamsPanelState(showStreams = true, selectedEpisode = episode)
         },
         onEpisodeStreamFilterSelected = PlayerStreamsRepository::selectEpisodeStreamsFilter,
         onEpisodeStreamSelected = { stream, episode -> switchToEpisodeStream(stream, episode) },

@@ -21,7 +21,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 internal fun CoroutineScope.launchPlayerNextEpisodeAutoPlay(
     previousJob: Job?,
-    immediate: Boolean = false,
     nextEpisodeInfo: NextEpisodeInfo?,
     allEpisodes: List<MetaVideo>,
     parentMetaId: String,
@@ -212,7 +211,7 @@ internal fun CoroutineScope.launchPlayerNextEpisodeAutoPlay(
         }
 
         val timeoutMs = timeoutSeconds * 1_000L
-        val isBoundedTimeout = !immediate && timeoutSeconds in 1..30
+        val isBoundedTimeout = timeoutSeconds in 1..30
 
         if (isBoundedTimeout) {
             delay(timeoutMs)
@@ -265,11 +264,9 @@ internal fun CoroutineScope.launchPlayerNextEpisodeAutoPlay(
         val selected = selectedStream
         if (selected != null) {
             onSourceNameChanged(selected.addonName)
-            if (!immediate) {
-                for (i in 3 downTo 1) {
-                    onCountdownChanged(i)
-                    delay(1000)
-                }
+            for (i in 3 downTo 1) {
+                onCountdownChanged(i)
+                delay(1000)
             }
             onEpisodeStreamSelected(selected, nextVideo)
             onNextEpisodeCardVisibleChanged(false)

@@ -352,10 +352,9 @@ internal fun PlayerScreenRuntime.switchToDownloadedEpisode(downloadItem: Downloa
     controlsVisible = true
 }
 
-internal fun PlayerScreenRuntime.playNextEpisode(immediate: Boolean = false) {
+internal fun PlayerScreenRuntime.playNextEpisode() {
     scope.launchPlayerNextEpisodeAutoPlay(
         previousJob = nextEpisodeAutoPlayJob,
-        immediate = immediate,
         nextEpisodeInfo = nextEpisodeInfo,
         allEpisodes = playerMetaVideos,
         parentMetaId = parentMetaId,
@@ -369,7 +368,6 @@ internal fun PlayerScreenRuntime.playNextEpisode(immediate: Boolean = false) {
             episodeStreamsPanelState = EpisodeStreamsPanelState(
                 showStreams = true,
                 selectedEpisode = nextVideo,
-                streamsUiState = PlayerStreamsRepository.episodeStreamsState.value,
             )
             showEpisodesPanel = true
         },
