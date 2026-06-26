@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -137,21 +138,23 @@ actual fun PlatformPlayerSurface(
                 }
             },
         )
-        ResolvedAndroidPlaybackEngine.Libmpv -> LibmpvPlayerSurface(
-            sourceUrl = sourceUrl,
-            sourceAudioUrl = sourceAudioUrl,
-            sourceHeaders = sourceHeaders,
-            externalSubtitles = externalSubtitles,
-            modifier = modifier,
-            playWhenReady = playWhenReady,
-            resizeMode = resizeMode,
-            videoOutput = playerSettings.androidLibmpvVideoOutput,
-            hardwareDecodingEnabled = playerSettings.androidLibmpvHardwareDecodingEnabled,
-            yuv420pEnabled = playerSettings.androidLibmpvYuv420pEnabled,
-            onControllerReady = onControllerReady,
-            onSnapshot = onSnapshot,
-            onError = onError,
-        )
+        ResolvedAndroidPlaybackEngine.Libmpv -> key(playerSourceKey) {
+            LibmpvPlayerSurface(
+                sourceUrl = sourceUrl,
+                sourceAudioUrl = sourceAudioUrl,
+                sourceHeaders = sourceHeaders,
+                externalSubtitles = externalSubtitles,
+                modifier = modifier,
+                playWhenReady = playWhenReady,
+                resizeMode = resizeMode,
+                videoOutput = playerSettings.androidLibmpvVideoOutput,
+                hardwareDecodingEnabled = playerSettings.androidLibmpvHardwareDecodingEnabled,
+                yuv420pEnabled = playerSettings.androidLibmpvYuv420pEnabled,
+                onControllerReady = onControllerReady,
+                onSnapshot = onSnapshot,
+                onError = onError,
+            )
+        }
     }
 }
 

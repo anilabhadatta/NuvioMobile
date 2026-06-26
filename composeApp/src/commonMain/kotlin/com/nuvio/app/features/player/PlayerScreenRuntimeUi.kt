@@ -116,6 +116,7 @@ internal fun PlayerScreenRuntime.RenderPlayerRuntimeUi() {
     ) {
         val playerSurfaceSourceUrl = if (isP2pPlaybackActive) p2pResolvedSourceUrl else activeSourceUrl
         if (playerSurfaceSourceUrl != null) {
+            val expectedSourceUrl = playerSurfaceSourceUrl
             PlatformPlayerSurface(
                 sourceUrl = playerSurfaceSourceUrl,
                 sourceAudioUrl = activeSourceAudioUrl,
@@ -131,6 +132,7 @@ internal fun PlayerScreenRuntime.RenderPlayerRuntimeUi() {
                     playerControllerSourceUrl = activeSourceUrl
                 },
                 onSnapshot = { snapshot ->
+                    if (expectedSourceUrl != activeSourceUrl) return@PlatformPlayerSurface
                     playbackSnapshot = snapshot
                     if (!snapshot.isLoading) initialLoadCompleted = true
                     if (snapshot.isEnded) {
