@@ -91,6 +91,20 @@ runs:
         SYNC_BACKEND_MANIFEST_URL: ${{ inputs.sync-backend-manifest-url }}
       run: |
         set -euo pipefail
+        
+        # Cross-fallback Supabase variables so either standard or Nuvio-prefixed inputs work seamlessly
+        if [ -n "${SUPABASE_URL}" ] && [ -z "${NUVIO_SUPABASE_URL}" ]; then
+          NUVIO_SUPABASE_URL="${SUPABASE_URL}"
+        elif [ -z "${SUPABASE_URL}" ] && [ -n "${NUVIO_SUPABASE_URL}" ]; then
+          SUPABASE_URL="${NUVIO_SUPABASE_URL}"
+        fi
+
+        if [ -n "${SUPABASE_ANON_KEY}" ] && [ -z "${NUVIO_SUPABASE_ANON_KEY}" ]; then
+          NUVIO_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+        elif [ -z "${SUPABASE_ANON_KEY}" ] && [ -n "${NUVIO_SUPABASE_ANON_KEY}" ]; then
+          SUPABASE_ANON_KEY="${NUVIO_SUPABASE_ANON_KEY}"
+        fi
+
         touch local.properties
         {
           echo ""

@@ -69,6 +69,8 @@ jobs:
         with:
           supabase-url: ${{ secrets.SUPABASE_URL }}
           supabase-anon-key: ${{ secrets.SUPABASE_ANON_KEY }}
+          nuvio-supabase-url: ${{ secrets.NUVIO_SUPABASE_URL || secrets.SUPABASE_URL }}
+          nuvio-supabase-anon-key: ${{ secrets.NUVIO_SUPABASE_ANON_KEY || secrets.SUPABASE_ANON_KEY }}
           trakt-client-id: ${{ secrets.TRAKT_CLIENT_ID }}
           trakt-client-secret: ${{ secrets.TRAKT_CLIENT_SECRET }}
           trakt-redirect-uri: ${{ secrets.TRAKT_REDIRECT_URI }}
