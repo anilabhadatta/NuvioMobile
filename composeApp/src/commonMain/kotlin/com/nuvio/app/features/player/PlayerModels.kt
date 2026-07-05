@@ -225,3 +225,9 @@ data class PlayerPlaybackSnapshot(
     val playbackSpeed: Float = 1f,
     val mediaInfoJson: String = "{}",
 )
+
+data class PlayerNowPlayingInfo(
+    val title: String,
+    val subtitle: String? = null,
+    val artworkUrl: String? = null,
+)
