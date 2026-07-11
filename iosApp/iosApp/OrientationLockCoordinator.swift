@@ -90,21 +90,7 @@ final class OrientationLockCoordinator {
 
     private func requestOrientationUpdate(for mask: UIInterfaceOrientationMask, forceRotate: Bool) {
         if #available(iOS 16.0, *) {
-            UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap(\.windows)
-                .forEach { window in
-                    window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
-                }
-
-            var targetMask = mask
-            if !forceRotate && UIDevice.current.orientation.isPortrait {
-                targetMask = .portrait
-            } else if forceRotate {
-                targetMask = mask
-            }
-
-            let preferences = UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: targetMask)
+            let preferences = UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: mask)
             UIApplication.shared.connectedScenes
                 .compactMap { $0 as? UIWindowScene }
                 .forEach { scene in
