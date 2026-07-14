@@ -382,9 +382,8 @@ private fun ExoPlayerSurface(
     }
 
     fun dispatchExoPlayerSnapshot() {
-        val snapshot = exoPlayer.snapshot()
+        val snapshot = exoPlayer.snapshot(initializedVideoDecoderName, initializedAudioDecoderName)
         latestOnSnapshot.value(snapshot)
-		latestOnSnapshot.value(exoPlayer.snapshot(initializedVideoDecoderName, initializedAudioDecoderName))
         nowPlayingController.syncPlayback(snapshot)
     }
 
@@ -517,7 +516,7 @@ private fun ExoPlayerSurface(
             }
 
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
-                latestOnSnapshot.value(exoPlayer.snapshot())
+                latestOnSnapshot.value(exoPlayer.snapshot(initializedVideoDecoderName, initializedAudioDecoderName))
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -778,7 +777,6 @@ private fun ExoPlayerSurface(
 
                 override fun applySubtitleStyle(style: SubtitleStyleState) {
                     currentSubtitleStyle = style
-                    playerViewRef?.applySubtitleStyle(style)
 					val overlay = playerViewRef?.syncNuvioSubtitleOverlay(style.shadowEnabled)
                     nuvioSubtitleOverlayRef = overlay
                     playerViewRef?.applySubtitleStyle(style, overlay, pipSubtitleScale)
@@ -816,8 +814,7 @@ private fun ExoPlayerSurface(
                     enabled = useLibass,
                     renderType = libassRenderType,
                 )
-                applySubtitleStyle(currentSubtitleStyle)
-                playerViewRef?.applySubtitleStyle(style, overlay, pipSubtitleScale)
+                applySubtitleStyle(currentSubtitleStyle, overlay, pipSubtitleScale)
             }
         },
         update = { playerView ->
@@ -833,8 +830,7 @@ private fun ExoPlayerSurface(
                 enabled = useLibass,
                 renderType = libassRenderType,
             )
-            playerView.applySubtitleStyle(currentSubtitleStyle)
-            playerViewRef?.applySubtitleStyle(style, overlay, pipSubtitleScale)
+            playerView.applySubtitleStyle(currentSubtitleStyle, overlay, pipSubtitleScale)
         },
     )
 }
