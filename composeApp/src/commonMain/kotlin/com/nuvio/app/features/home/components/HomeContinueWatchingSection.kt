@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.nuvio.app.core.ui.DisintegratingContainer
+import com.nuvio.app.core.ui.NuvioCardDepthSurface
 import com.nuvio.app.core.ui.NuvioProgressBar
+import com.nuvio.app.core.ui.nuvioCardDepth
 import com.nuvio.app.core.ui.NuvioShelfSection
 import com.nuvio.app.core.ui.NuvioTokens
 import com.nuvio.app.core.ui.PosterLandscapeAspectRatio
@@ -233,6 +237,7 @@ internal fun HomeContinueWatchingSection(
     modifier: Modifier = Modifier,
     sectionPadding: Dp? = null,
     layout: ContinueWatchingLayout? = null,
+    listState: LazyListState = rememberLazyListState(),
     onItemClick: ((ContinueWatchingItem) -> Unit)? = null,
     onItemLongPress: ((ContinueWatchingItem) -> Unit)? = null,
 ) {
@@ -247,6 +252,7 @@ internal fun HomeContinueWatchingSection(
             modifier = modifier.fillMaxWidth(),
             sectionPadding = sectionPadding,
             layout = layout,
+            listState = listState,
             onItemClick = onItemClick,
             onItemLongPress = onItemLongPress,
         )
@@ -260,6 +266,7 @@ internal fun HomeContinueWatchingSection(
                 modifier = Modifier.fillMaxWidth(),
                 sectionPadding = homeSectionHorizontalPaddingForWidth(maxWidth.value),
                 layout = rememberContinueWatchingLayout(maxWidth.value),
+                listState = listState,
                 onItemClick = onItemClick,
                 onItemLongPress = onItemLongPress,
             )
@@ -276,6 +283,7 @@ private fun HomeContinueWatchingSectionContent(
     modifier: Modifier,
     sectionPadding: Dp,
     layout: ContinueWatchingLayout,
+    listState: LazyListState,
     onItemClick: ((ContinueWatchingItem) -> Unit)?,
     onItemLongPress: ((ContinueWatchingItem) -> Unit)?,
 ) {
@@ -297,6 +305,7 @@ private fun HomeContinueWatchingSectionContent(
         showHeaderAccent = !homeCatalogSettings.hideCatalogUnderline,
         key = { entry -> entry.videoId },
         animatePlacement = true,
+        state = listState,
     ) { entry ->
         val item = entry.item
         val onClick = if (entry.exiting) null else onItemClick?.let { { it(item) } }
@@ -703,6 +712,10 @@ private fun ContinueWatchingCard(
             .aspectRatio(PosterLandscapeAspectRatio)
             .clip(RoundedCornerShape(cardMetrics.cornerRadius))
             .background(MaterialTheme.colorScheme.surfaceVariant)
+            .nuvioCardDepth(
+                shape = RoundedCornerShape(cardMetrics.cornerRadius),
+                surface = NuvioCardDepthSurface.ContinueWatching,
+            )
             .posterCardClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
