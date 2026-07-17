@@ -33,12 +33,6 @@ data class AddonSubtitle(
     val isSelected: Boolean = false,
 )
 
-enum class SubtitleTab {
-    BuiltIn,
-    Addons,
-    Style,
-}
-
 enum class AddonSubtitleStartupMode {
     FAST_STARTUP,
     PREFERRED_ONLY,
@@ -151,7 +145,6 @@ data class SubtitleAudioUiState(
     val subtitleStyle: SubtitleStyleState = SubtitleStyleState.DEFAULT,
     val showAudioModal: Boolean = false,
     val showSubtitleModal: Boolean = false,
-    val activeSubtitleTab: SubtitleTab = SubtitleTab.BuiltIn,
 )
 
 @Composable
