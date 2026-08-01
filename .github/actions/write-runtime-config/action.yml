@@ -1,0 +1,127 @@
+name: Write runtime config to local.properties
+description: >
+  Append runtime config keys (Supabase, Trakt, IntroDB, IMDB, Community URLs)
+  consumed by composeApp/build.gradle.kts to local.properties. Each input is
+  optional — when omitted the corresponding generated config field is an empty
+  string at runtime (matches the behavior of a local dev without a configured
+  local.properties).
+
+inputs:
+  supabase-url:
+    description: Supabase project URL
+    required: false
+    default: ''
+  supabase-anon-key:
+    description: Supabase anon API key
+    required: false
+    default: ''
+  nuvio-supabase-url:
+    description: Nuvio Supabase project URL
+    required: false
+    default: ''
+  nuvio-supabase-anon-key:
+    description: Nuvio Supabase anon API key
+    required: false
+    default: ''
+  trakt-client-id:
+    description: Trakt OAuth client id
+    required: false
+    default: ''
+  trakt-client-secret:
+    description: Trakt OAuth client secret
+    required: false
+    default: ''
+  trakt-redirect-uri:
+    description: Trakt OAuth redirect URI (defaults to nuvio://auth/trakt)
+    required: false
+    default: ''
+  introdb-api-url:
+    description: IntroDB API base URL
+    required: false
+    default: ''
+  imdb-ratings-api-base-url:
+    description: IMDB episode ratings API base URL
+    required: false
+    default: ''
+  imdb-tapframe-api-base-url:
+    description: IMDB tapframe API base URL
+    required: false
+    default: ''
+  contributions-url:
+    description: Community contributions URL (settings screen)
+    required: false
+    default: ''
+  donations-base-url:
+    description: Donations base URL (settings screen)
+    required: false
+    default: ''
+  donations-donate-url:
+    description: Donations donate URL (settings screen)
+    required: false
+    default: ''
+  premiumize-client-id:
+    description: Premiumize OAuth client id
+    required: false
+    default: ''
+  sync-backend-manifest-url:
+    description: Sync backend switch manifest URL
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Append runtime config to local.properties
+      shell: bash
+      env:
+        SUPABASE_URL: ${{ inputs.supabase-url }}
+        SUPABASE_ANON_KEY: ${{ inputs.supabase-anon-key }}
+        NUVIO_SUPABASE_URL: ${{ inputs.nuvio-supabase-url }}
+        NUVIO_SUPABASE_ANON_KEY: ${{ inputs.nuvio-supabase-anon-key }}
+        TRAKT_CLIENT_ID: ${{ inputs.trakt-client-id }}
+        TRAKT_CLIENT_SECRET: ${{ inputs.trakt-client-secret }}
+        TRAKT_REDIRECT_URI: ${{ inputs.trakt-redirect-uri }}
+        INTRODB_API_URL: ${{ inputs.introdb-api-url }}
+        IMDB_RATINGS_API_BASE_URL: ${{ inputs.imdb-ratings-api-base-url }}
+        IMDB_TAPFRAME_API_BASE_URL: ${{ inputs.imdb-tapframe-api-base-url }}
+        CONTRIBUTIONS_URL: ${{ inputs.contributions-url }}
+        DONATIONS_BASE_URL: ${{ inputs.donations-base-url }}
+        DONATIONS_DONATE_URL: ${{ inputs.donations-donate-url }}
+        PREMIUMIZE_CLIENT_ID: ${{ inputs.premiumize-client-id }}
+        SYNC_BACKEND_MANIFEST_URL: ${{ inputs.sync-backend-manifest-url }}
+      run: |
+        set -euo pipefail
+        
+        # Cross-fallback Supabase variables so either standard or Nuvio-prefixed inputs work seamlessly
+        if [ -n "${SUPABASE_URL}" ] && [ -z "${NUVIO_SUPABASE_URL}" ]; then
+          NUVIO_SUPABASE_URL="${SUPABASE_URL}"
+        elif [ -z "${SUPABASE_URL}" ] && [ -n "${NUVIO_SUPABASE_URL}" ]; then
+          SUPABASE_URL="${NUVIO_SUPABASE_URL}"
+        fi
+
+        if [ -n "${SUPABASE_ANON_KEY}" ] && [ -z "${NUVIO_SUPABASE_ANON_KEY}" ]; then
+          NUVIO_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+        elif [ -z "${SUPABASE_ANON_KEY}" ] && [ -n "${NUVIO_SUPABASE_ANON_KEY}" ]; then
+          SUPABASE_ANON_KEY="${NUVIO_SUPABASE_ANON_KEY}"
+        fi
+
+        touch local.properties
+        {
+          echo ""
+          printf 'SUPABASE_URL=%s\n'                 "${SUPABASE_URL}"
+          printf 'SUPABASE_ANON_KEY=%s\n'            "${SUPABASE_ANON_KEY}"
+          printf 'NUVIO_SUPABASE_URL=%s\n'           "${NUVIO_SUPABASE_URL}"
+          printf 'NUVIO_SUPABASE_ANON_KEY=%s\n'      "${NUVIO_SUPABASE_ANON_KEY}"
+          printf 'TRAKT_CLIENT_ID=%s\n'              "${TRAKT_CLIENT_ID}"
+          printf 'TRAKT_CLIENT_SECRET=%s\n'          "${TRAKT_CLIENT_SECRET}"
+          # Empty input falls back to the same default the build script uses.
+          printf 'TRAKT_REDIRECT_URI=%s\n'           "${TRAKT_REDIRECT_URI:-nuvio://auth/trakt}"
+          printf 'INTRODB_API_URL=%s\n'              "${INTRODB_API_URL}"
+          printf 'IMDB_RATINGS_API_BASE_URL=%s\n'   "${IMDB_RATINGS_API_BASE_URL}"
+          printf 'IMDB_TAPFRAME_API_BASE_URL=%s\n'  "${IMDB_TAPFRAME_API_BASE_URL}"
+          printf 'CONTRIBUTIONS_URL=%s\n'            "${CONTRIBUTIONS_URL}"
+          printf 'DONATIONS_BASE_URL=%s\n'           "${DONATIONS_BASE_URL}"
+          printf 'DONATIONS_DONATE_URL=%s\n'         "${DONATIONS_DONATE_URL}"
+          printf 'PREMIUMIZE_CLIENT_ID=%s\n'         "${PREMIUMIZE_CLIENT_ID}"
+          printf 'SYNC_BACKEND_MANIFEST_URL=%s\n'   "${SYNC_BACKEND_MANIFEST_URL}"
+        } >> local.properties

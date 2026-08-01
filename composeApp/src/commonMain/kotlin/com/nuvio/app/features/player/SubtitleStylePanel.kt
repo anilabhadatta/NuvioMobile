@@ -312,7 +312,7 @@ private fun SubtitleAutoSyncSection(
 ) {
     val tokens = MaterialTheme.nuvio
     val capturedPositionMs = state.capturedPositionMs
-    val nearestCues = state.nearestCues
+    val nearestCues = state.cues
 
     SubtitleStyleSection(title = stringResource(Res.string.compose_player_auto_sync)) {
         Row(
