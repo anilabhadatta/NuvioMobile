@@ -257,6 +257,18 @@ final class MPVPlayerViewController: UIViewController {
         let artworkUrl: String?
     }
 
+    private struct CachedSubtitleStyle {
+        let textColor: String
+        let backgroundColor: String
+        let outlineColor: String
+        let outlineSize: Float
+        let bold: Bool
+        let fontSize: Float
+        let subPos: Int
+        let shadowEnabled: Bool
+        let shadowDensity: Float
+    }
+
     private let errorStateLock = NSLock()
     private var metalLayer = MetalLayer()
     private var lastAppliedDrawableSize: CGSize = .zero
@@ -266,6 +278,7 @@ final class MPVPlayerViewController: UIViewController {
     private var pendingLoadRetryWorkItem: DispatchWorkItem?
     private var mpv: OpaquePointer?
     private var cachedNowPlayingMetadata: CachedNowPlayingMetadata?
+    private var cachedSubtitleStyle: CachedSubtitleStyle?
     private lazy var nowPlayingController = PlayerNowPlayingController(owner: self)
     private lazy var eventQueue = DispatchQueue(label: "mpv-events", qos: .userInitiated)
     private var recentPlaybackLogs: [String] = []
@@ -811,11 +824,24 @@ final class MPVPlayerViewController: UIViewController {
         shadowEnabled: Bool,
         shadowDensity: Float
     ) {
+        cachedSubtitleStyle = CachedSubtitleStyle(
+            textColor: textColor,
+            backgroundColor: backgroundColor,
+            outlineColor: outlineColor,
+            outlineSize: outlineSize,
+            bold: bold,
+            fontSize: fontSize,
+            subPos: subPos,
+            shadowEnabled: shadowEnabled,
+            shadowDensity: shadowDensity
+        )
+
         guard mpv != nil else { return }
 
         checkError(mpv_set_property_string(mpv, "sub-ass-override", "no"))
         checkError(mpv_set_property_string(mpv, "sub-color", textColor))
         checkError(mpv_set_property_string(mpv, "sub-outline-color", outlineColor))
+        checkError(mpv_set_property_string(mpv, "sub-border-color", outlineColor))
         setStringProperty("sub-bold", bold ? "yes" : "no")
 
         var size = Double(fontSize)
@@ -838,6 +864,7 @@ final class MPVPlayerViewController: UIViewController {
             // margin is controlled by sub-shadow-offset.
             checkError(mpv_set_property_string(mpv, "sub-border-style", "background-box"))
             checkError(mpv_set_property_string(mpv, "sub-back-color", backgroundColor))
+            checkError(mpv_set_property_string(mpv, "sub-shadow-color", backgroundColor))
 
             var outline = 0.0
             checkError(mpv_set_property(mpv, "sub-outline-size", MPV_FORMAT_DOUBLE, &outline))
@@ -860,13 +887,30 @@ final class MPVPlayerViewController: UIViewController {
                 checkError(mpv_set_property(mpv, "sub-shadow-offset", MPV_FORMAT_DOUBLE, &shadowOffset))
                 // Shadow color uses sub-back-color (opaque black).
                 checkError(mpv_set_property_string(mpv, "sub-back-color", "#FF000000"))
+                checkError(mpv_set_property_string(mpv, "sub-shadow-color", "#FF000000"))
             } else {
                 var shadowOffset = 0.0
                 checkError(mpv_set_property(mpv, "sub-shadow-offset", MPV_FORMAT_DOUBLE, &shadowOffset))
                 // No shadow, no background -> fully transparent back color.
                 checkError(mpv_set_property_string(mpv, "sub-back-color", "#00000000"))
+                checkError(mpv_set_property_string(mpv, "sub-shadow-color", "#00000000"))
             }
         }
+    }
+
+    func reapplyPendingSubtitleStyle() {
+        guard let style = cachedSubtitleStyle else { return }
+        applySubtitleStyle(
+            textColor: style.textColor,
+            backgroundColor: style.backgroundColor,
+            outlineColor: style.outlineColor,
+            outlineSize: style.outlineSize,
+            bold: style.bold,
+            fontSize: style.fontSize,
+            subPos: style.subPos,
+            shadowEnabled: style.shadowEnabled,
+            shadowDensity: style.shadowDensity
+        )
     }
 
     func destroyPlayer() {
@@ -1174,6 +1218,7 @@ final class MPVPlayerViewController: UIViewController {
                     DispatchQueue.main.async {
                         self.clearPlaybackError()
                         self.isPlayerLoading = false
+                        self.reapplyPendingSubtitleStyle()
                         self.updateState()
                         self.publishNowPlayingForPlaybackSession()
                         self.logCurrentAudioOutput()
